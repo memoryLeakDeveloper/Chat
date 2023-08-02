@@ -4,6 +4,17 @@ plugins {
     id 'com.google.gms.google-services'
 }
 
+def secretsPropertiesFile = rootProject.file("secrets.properties")
+def secretProperties = new Properties()
+
+if (secretsPropertiesFile.exists()) {
+    secretProperties.load(new FileInputStream(secretsPropertiesFile))
+} else {
+    secretProperties.setProperty("signing_keystore_password", "${System.getenv('SIGNING_KEYSTORE_PASSWORD')}")
+    secretProperties.setProperty("signing_key_password", "${System.getenv('SIGNING_KEY_PASSWORD')}")
+    secretProperties.setProperty("signing_key_alias", "${System.getenv('SIGNING_KEY_ALIAS')}")
+}
+
 android {
     namespace 'com.example.chat'
     compileSdk 33
@@ -16,6 +27,15 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('./chatKeys.jks')
+            storePassword "${secretProperties['signing_keystore_password']}"
+            keyAlias "${secretProperties['signing_key_alias']}"
+            keyPassword "${secretProperties['signing_key_password']}"
+        }
     }
 
     buildTypes {
